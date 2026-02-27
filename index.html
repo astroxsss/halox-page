@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halox</title>
+  <meta name="description" content="Halox - 毛玻璃配置选择页" />
+
+  <style>
+    :root{
+      --glass-bg: rgba(255,255,255,.58);
+      --glass-bg-2: rgba(255,255,255,.40);
+      --border: rgba(255,255,255,.70);
+      --text: #0f172a;
+      --muted: rgba(15,23,42,.72);
+      --shadow: 0 20px 60px rgba(15,23,42,.12);
+      --shadow-soft: 0 10px 30px rgba(15,23,42,.10);
+      --ring: rgba(59,130,246,.22);
+      --accent: #3b82f6;
+      --accent2: #06b6d4;
+      --good: #22c55e;
+      --bad: #ef4444;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      overflow-x:hidden;
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(99,102,241,.22), transparent 55%),
+                  radial-gradient(1000px 600px at 80% 20%, rgba(34,197,94,.16), transparent 55%),
+                  radial-gradient(1200px 700px at 60% 90%, rgba(14,165,233,.16), transparent 55%),
+                  linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f7fbff 100%);
+    }
+
+    /* 背景白雾 */
+    .fog{
+      position:fixed;
+      inset:-30vh -30vw;
+      pointer-events:none;
+      filter: blur(20px);
+      opacity:.55;
+      background:
+        radial-gradient(220px 140px at 20% 30%, rgba(255,255,255,.90), transparent 70%),
+        radial-gradient(260px 160px at 65% 25%, rgba(255,255,255,.75), transparent 70%),
+        radial-gradient(240px 150px at 45% 65%, rgba(255,255,255,.80), transparent 70%),
+        radial-gradient(260px 160px at 80% 70%, rgba(255,255,255,.70), transparent 70%);
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    @keyframes drift{
+      from{ transform: translate3d(-2vw,-2vh,0) scale(1.02); }
+      to{ transform: translate3d(2vw,2vh,0) scale(1.06); }
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 42px 18px;
+      position:relative;
+      z-index:1;
+    }
+
+    .card{
+      width:min(1080px, 100%);
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      padding: 18px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.40));
+      border: 1px solid rgba(255,255,255,.55);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(520px 220px at 20% 10%, rgba(59,130,246,.18), transparent 55%),
+                  radial-gradient(520px 260px at 80% 20%, rgba(34,197,94,.12), transparent 55%),
+                  radial-gradient(520px 260px at 60% 90%, rgba(14,165,233,.14), transparent 55%);
+      filter: blur(8px);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    @media (max-width: 920px){
+      .card{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      border-radius: 22px;
+      padding: 22px;
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .profile{
+      animation: floaty 7s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translateY(0); }
+      50%{ transform: translateY(-6px); }
+    }
+
+    .avatar{
+      width: 92px;
+      height: 92px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(14,165,233,.14), rgba(34,197,94,.10));
+      border: 1px solid rgba(255,255,255,.85);
+      display:grid;
+      place-items:center;
+      box-shadow: 0 12px 30px rgba(59,130,246,.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .avatar::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), transparent 55%);
+      transform: rotate(18deg);
+      opacity:.7;
+    }
+    .avatar span{
+      font-weight: 900;
+      font-size: 28px;
+      letter-spacing: .5px;
+      color: rgba(15,23,42,.85);
+      position:relative;
+      z-index:1;
+    }
+
+    .name{
+      margin: 16px 0 6px;
+      font-size: 28px;
+      letter-spacing: .4px;
+    }
+
+    .notice{
+      margin: 0 0 14px;
+      color: rgba(15,23,42,.80);
+      line-height: 1.75;
+      font-size: 14px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.52);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: 0 10px 22px rgba(15,23,42,.06);
+    }
+    .notice b{ font-weight: 800; }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.7);
+      background: rgba(255,255,255,.55);
+      color: rgba(15,23,42,.86);
+      text-decoration:none;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 12px 28px rgba(15,23,42,.08);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+      user-select:none;
+      cursor:pointer;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px rgba(15,23,42,.10);
+      background: rgba(255,255,255,.68);
+      border-color: rgba(255,255,255,.92);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(6,182,212,.12));
+      border-color: rgba(59,130,246,.18);
+      box-shadow: 0 18px 42px rgba(59,130,246,.12);
+    }
+    .btn.danger{
+      background: rgba(239,68,68,.10);
+      border-color: rgba(239,68,68,.18);
+    }
+
+    footer{
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(15,23,42,.55);
+    }
+
+    /* 右侧内容区 */
+    .h2{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: .3px;
+    }
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(59,130,246,.70));
+      box-shadow: 0 0 0 6px var(--ring);
+    }
+
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom: 12px;
+    }
+
+    .search{
+      flex: 1 1 260px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    input[type="search"]{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.78);
+      background: rgba(255,255,255,.55);
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 10px 22px rgba(15,23,42,.06);
+    }
+    .meta{
+      font-size: 13px;
+      color: rgba(15,23,42,.70);
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.78);
+      background: rgba(255,255,255,.48);
+      box-shadow: 0 10px 22px rgba(15,23,42,.06);
+    }
+
+    .tableWrap{
+      margin-top: 10px;
+      border-radius: 18px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.70);
+      background: rgba(255,255,255,.40);
+      box-shadow: 0 12px 26px rgba(15,23,42,.06);
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead th{
+      text-align:left;
+      padding: 12px 12px;
+      background: rgba(255,255,255,.60);
+      border-bottom: 1px solid rgba(15,23,42,.10);
+      color: rgba(15,23,42,.78);
+    }
+    tbody td{
+      padding: 10px 12px;
+      border-bottom: 1px dashed rgba(15,23,42,.10);
+      vertical-align: top;
+    }
+    tbody tr:hover{
+      background: rgba(255,255,255,.38);
+    }
+    .cat{
+      font-weight: 800;
+      color: rgba(15,23,42,.82);
+      width: 140px;
+      white-space: nowrap;
+    }
+
+    .items{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 12px;
+      align-items:center;
+    }
+    .item{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: 0 8px 18px rgba(15,23,42,.05);
+      user-select:none;
+      cursor:pointer;
+    }
+    .item input{
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor:pointer;
+    }
+    .item span{
+      color: rgba(15,23,42,.80);
+      font-size: 13px;
+    }
+
+    .qrBox{
+      margin-top: 16px;
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .qrBox img{
+      width: 220px;
+      max-width: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.85);
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 12px 26px rgba(15,23,42,.10);
+    }
+    .qrText{
+      flex: 1 1 220px;
+      color: rgba(15,23,42,.78);
+      line-height: 1.8;
+      font-size: 14px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.52);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: 0 10px 22px rgba(15,23,42,.06);
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,.88);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 50;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .fog, .profile{ animation: none; }
+      .btn{ transition:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fog"></div>
+  <div class="toast" id="toast">已完成</div>
+
+  <main class="wrap">
+    <section class="card" aria-label="Halox 页面">
+      <!-- 左侧：个人信息 -->
+      <aside class="panel profile">
+        <div class="avatar" aria-label="头像">
+          <span>HX</span>
+        </div>
+
+        <h1 class="name">Halox</h1>
+
+        <div class="notice">
+          <b>!!</b> 下表中的需求任选一般费用是50，其他特殊需求另算，一般耗时一小时。默认不提供技术支持，技术支持额外付费
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="#contact">📩 联系我</a>
+          <button class="btn" id="btnDownload">⬇️ 下载配置 JSON</button>
+          <button class="btn" id="btnCopy">📋 复制配置</button>
+          <button class="btn danger" id="btnClear">🧹 清空选择</button>
+        </div>
+
+        <footer>© <span id="year"></span> · Cloudflare Pages ☁️</footer>
+      </aside>
+
+      <!-- 右侧：选择表格 + 联系方式 -->
+      <div class="panel">
+        <div class="topbar">
+          <div class="search">
+            <input id="q" type="search" placeholder="搜索功能名称（例如：OpenClash / Docker / DDNS）…" />
+          </div>
+          <div class="meta">
+            已选：<b id="count">0</b> 项
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="dot"></span>需求选择表（勾选后可导出配置文件）</h2>
+
+        <div class="tableWrap" aria-label="功能选择表格">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:160px;">分类</th>
+                <th>功能（点击/勾选）</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div style="height:16px;"></div>
+
+        <h2 class="h2" id="contact"><span class="dot"></span>联系我（扫码）</h2>
+        <div class="qrBox">
+          <!-- ✅ 你把你发的二维码图保存到：assets/wechat-qr.png -->
+          <img src="assets/wechat-qr.png" alt="微信二维码" />
+          <div class="qrText">
+            扫码添加微信即可。<br/>
+            如果图片不显示：请确认仓库里存在 <b>assets/wechat-qr.png</b> 且路径/文件名完全一致。<br/>
+            也可以把二维码换成别的平台二维码（同样替换图片即可）。
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 年份
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // 你的功能清单：按分类
+    const DATA = [
+      { category: "网络向导", items: ["iStore", "状态"] },
+      { category: "系统", items: [
+        "实时监控","WireGuard 状态","释放内存","TTYD 终端","高级设置","定时重启","文件传输",
+        "Argon主题设置","Design主题设置","KuCat主题设置","磁盘管理","分区扩容","关机","Web管理",
+        "ACME 证书","自定义命令","Docker"
+      ]},
+      { category: "Docker", items: ["Docker(Dockerman)","Docker CE 容器","管控"] },
+      { category: "服务", items: [
+        "集客AC控制器","ShadowSocksR Plus+","PassWall","PassWall2","OpenClash","Hello World",
+        "MosDNS","SmartDNS","AdGuard Home","iKoolProxy 滤广告","网站域名黑白名单配置",
+        "广告屏蔽大师 Plus+","DNS 过滤器","微信推送","全能推送",
+        "动态 DNS(支持阿里腾讯)","阿里DDNS","DDNS-GO","腾讯云DDNS","DDNSTO 远程控制",
+        "雷神加速器","奇游联机宝","UU游戏加速器","UPnP","网络唤醒","上网时间控制","解锁网易云灰色歌曲",
+        "IPTV 帮手","组播代理","组播转换","udpxy","Frps","Frp 内网穿透","Chatgpt Web",
+        "蒲公英智能组网","花生壳内网穿透","阿里云盘 WebDAV","阿里云盘 FUSE",
+        "MentoHUST","易有云文件管理器","OpenList","Lucky","QoS Nftables 版","LXC Containers",
+        "WatchCat","uHTTPd","VPN 绕过","KMS 服务器","OpenVPN(客户端)","Nps 内网穿透","Nps 客户端",
+        "AirPlay 2 音频接收器","迅雷快鸟","MWAN3 分流助手","ClamAV","Polipo","Dnsforwarder",
+        "PS3 NET 服务器","Tinyproxy","V2ray 服务器","BearDropper"
+      ]},
+      { category: "网络存储", items: [
+        "统一文件共享","可道云","微力同步","Alist 文件列表","CloudDrive2","NFS 管理","USB 打印服务器",
+        "打印服务器(模块)","硬盘休眠","网络共享(SMB)","Webdav","挂载 SMB 网络共享",
+        "Aria2 配置","qBittorrent","Transmission","FTP 服务器","PCHiFi 数字转盘遥控",
+        "miniDLNA","aMule","BaiduPCS Web"
+      ]},
+      { category: "VPN", items: ["ZeroTier","EasyTier","PPTP VPN 服务器","IPSec VPN 服务器","OpenVPN 服务器","SoftEther VPN 服务器","N2N VPN"] },
+      { category: "网络", items: [
+        "IP/MAC绑定","简单MESH","SQM QoS","IP限速","定时限速","服务质量(QoS)","应用过滤",
+        "网速测试","流量统计","多线多拨","负载均衡","Socat","Turbo ACC 网络加速","AHCP 服务器",
+        "Macvlan","带宽监控","网络带宽监视器","实时流量监测"
+      ]}
+    ];
+
+    // 状态
+    const selected = new Set();
+
+    const tbody = document.getElementById("tbody");
+    const q = document.getElementById("q");
+    const countEl = document.getElementById("count");
+
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function toast(msg){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1300);
+    }
+
+    function updateCount(){
+      countEl.textContent = selected.size.toString();
+    }
+
+    function render(){
+      const keyword = (q.value || "").trim().toLowerCase();
+      tbody.innerHTML = "";
+
+      DATA.forEach(group => {
+        const filtered = group.items.filter(name => name.toLowerCase().includes(keyword));
+        if(keyword && filtered.length === 0) return;
+
+        const tr = document.createElement("tr");
+
+        const tdCat = document.createElement("td");
+        tdCat.className = "cat";
+        tdCat.textContent = group.category;
+
+        const tdItems = document.createElement("td");
+        const wrap = document.createElement("div");
+        wrap.className = "items";
+
+        (keyword ? filtered : group.items).forEach(name => {
+          const id = `${group.category}__${name}`;
+
+          const label = document.createElement("label");
+          label.className = "item";
+          label.setAttribute("for", id);
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.id = id;
+          input.checked = selected.has(id);
+
+          input.addEventListener("change", () => {
+            if(input.checked) selected.add(id);
+            else selected.delete(id);
+            updateCount();
+          });
+
+          const span = document.createElement("span");
+          span.innerHTML = escapeHtml(name);
+
+          label.appendChild(input);
+          label.appendChild(span);
+          wrap.appendChild(label);
+        });
+
+        tdItems.appendChild(wrap);
+        tr.appendChild(tdCat);
+        tr.appendChild(tdItems);
+        tbody.appendChild(tr);
+      });
+
+      updateCount();
+    }
+
+    function buildConfig(){
+      // 生成结构化 JSON：按分类输出已选项
+      const out = {
+        name: "Halox",
+        pricing_note: "!! 下表中的需求任选一般费用是50，其他特殊需求另算，一般耗时一小时。默认不提供技术支持，技术支持额外付费",
+        selected_at: new Date().toISOString(),
+        selections: {}
+      };
+
+      selected.forEach(id => {
+        const [cat, name] = id.split("__");
+        if(!out.selections[cat]) out.selections[cat] = [];
+        out.selections[cat].push(name);
+      });
+
+      // 按字母/中文排序一下（可选）
+      Object.keys(out.selections).forEach(cat => {
+        out.selections[cat].sort((a,b) => a.localeCompare(b, "zh-Hant"));
+      });
+
+      return out;
+    }
+
+    function downloadJson(){
+      const cfg = buildConfig();
+      const blob = new Blob([JSON.stringify(cfg, null, 2)], {type:"application/json;charset=utf-8"});
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      a.href = URL.createObjectURL(blob);
+      a.download = `halox-config-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast("已下载 JSON ✅");
+    }
+
+    async function copyJson(){
+      const cfg = buildConfig();
+      const text = JSON.stringify(cfg, null, 2);
+      try{
+        await navigator.clipboard.writeText(text);
+        toast("已复制到剪贴板 ✅");
+      }catch(e){
+        // 兼容：如果剪贴板权限失败，就弹窗提示
+        window.prompt("复制失败，可手动复制下面内容：", text);
+      }
+    }
+
+    function clearAll(){
+      selected.clear();
+      render();
+      toast("已清空选择 🧹");
+    }
+
+    q.addEventListener("input", render);
+    document.getElementById("btnDownload").addEventListener("click", downloadJson);
+    document.getElementById("btnCopy").addEventListener("click", copyJson);
+    document.getElementById("btnClear").addEventListener("click", clearAll);
+
+    // 初次渲染
+    render();
+  </script>
+</body>
+</html>
